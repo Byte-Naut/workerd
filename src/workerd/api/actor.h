@@ -348,8 +348,8 @@ class GlobalActorOutgoingFactory final: public Fetcher::OutgoingFactory {
 
   Result newSingleUseClient(
       kj::Maybe<kj::String> cfStr, MakeUserSpanParent makeUserSpanParent) override;
-  bool supportsActorFetchRetries() const override {
-    return true;
+  kj::Maybe<ActorRetryTargetType> actorFetchRetryTargetType() const override {
+    return ActorRetryTargetType::GLOBAL;
   }
   void onActorFetchRetry() override;
   Result newSingleUseClientWithActorRetryMetadata(kj::Maybe<kj::String> cfStr,
@@ -417,8 +417,8 @@ class ReplicaActorOutgoingFactory final: public Fetcher::OutgoingFactory {
 
   Result newSingleUseClient(
       kj::Maybe<kj::String> cfStr, MakeUserSpanParent makeUserSpanParent) override;
-  bool supportsActorFetchRetries() const override {
-    return true;
+  kj::Maybe<ActorRetryTargetType> actorFetchRetryTargetType() const override {
+    return ActorRetryTargetType::REPLICA;
   }
   void onActorFetchRetry() override {
     // Keep the pre-resolved primary channel. Reconnecting a broken channel requires routing state

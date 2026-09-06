@@ -25,20 +25,40 @@ class IoContext;
 WD_STRONG_BOOL(SubrequestBodyRewindable);
 // Whether an outgoing request contributes to the logical subrequest count.
 WD_STRONG_BOOL(CountSubrequest);
-
 enum class ActorRetryCallType : uint8_t {
   FETCH,
   JSRPC,
   OTHER,
-  COUNT,
+};
+
+enum class ActorRetryTargetType : uint8_t {
+  GLOBAL,
+  REPLICA,
 };
 
 enum class ActorRetryOutcome : uint8_t {
   RECOVERED,
-  RETRIES_EXHAUSTED,
-  UNABLE_TO_RETRY,
+  GATE_DISABLED,
+  PAYLOAD_NOT_REPLAYABLE,
+  DELIVERED,
+  CLAIM_REJECTED,
   OTHER,
-  COUNT,
+  ATTEMPT_LIMIT,
+  TIME_BUDGET,
+  LATER_NON_RETRYABLE_FAILURE,
+};
+
+struct ActorRetryOutcomeInfo {
+  ActorRetryCallType callType;
+  ActorRetryTargetType targetType;
+  ActorRetryOutcome outcome;
+  uint retryAttemptsStarted;
+  uint notDeliveredDisconnectCount;
+  uint deliveredDisconnectCount;
+  uint ambiguousDisconnectCount;
+  kj::Duration retryAddedLatency;
+  bool retryGateEnabled;
+  bool payloadReplayable;
 };
 
 class WorkerInterface;
@@ -163,7 +183,7 @@ class RequestObserver: public kj::Refcounted {
   virtual void recordActorRetry(ActorRetryCallType callType) {}
 
   // Records the terminal outcome of an outgoing actor call after a retry-relevant failure.
-  virtual void recordActorRetryOutcome(ActorRetryCallType callType, ActorRetryOutcome outcome) {}
+  virtual void recordActorRetryOutcome(ActorRetryOutcomeInfo info) {}
 
   // Fired immediately before an actor fetch dispatches into user code, so an observer can claim the
   // request's retry-token nonce against the actor's claim store. No-op in the base observer;

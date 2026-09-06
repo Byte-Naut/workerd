@@ -253,8 +253,8 @@ class Fetcher: public JsRpcClientProvider {
     virtual Result newSingleUseClient(
         kj::Maybe<kj::String> cfStr, MakeUserSpanParent makeUserSpanParent) = 0;
 
-    virtual bool supportsActorFetchRetries() const {
-      return false;
+    virtual kj::Maybe<ActorRetryTargetType> actorFetchRetryTargetType() const {
+      return kj::none;
     }
 
     virtual void onActorFetchRetry() {
@@ -334,7 +334,7 @@ class Fetcher: public JsRpcClientProvider {
       kj::Maybe<IoChannelFactory::ActorRetryRequestMetadata> actorRetryRequestMetadata,
       CountSubrequest countSubrequest);
 
-  bool supportsActorFetchRetries();
+  kj::Maybe<ActorRetryTargetType> actorFetchRetryTargetType();
   void onActorFetchRetry();
 
   // Get a SubrequestChannel representing this Fetcher.
